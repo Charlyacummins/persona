@@ -1,12 +1,93 @@
-import { updateProfile } from "./actions";
+'use client';
+
+import { useState, useEffect } from 'react';
+import { updateProfile, getProfile } from './actions';
+
+type ProfileData = {
+  display_name: string;
+  age_range: string;
+  sex: string;
+  experience_level: string;
+  primary_goal: string;
+  training_days_per_week: number;
+  preferred_style: string;
+  available_equipment: string;
+  injuries: string | null;
+};
 
 export default function Onboarding() {
-  return (
-    <main className="min-h-screen bg-gray-900 py-12 px-4">
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-3xl font-bold text-white mb-8">Onboarding</h1>
+  const [formData, setFormData] = useState<ProfileData>({
+    display_name: '',
+    age_range: '',
+    sex: '',
+    experience_level: '',
+    primary_goal: '',
+    training_days_per_week: 0,
+    preferred_style: '',
+    available_equipment: '',
+    injuries: '',
+  });
+  const [isLoading, setIsLoading] = useState(true);
 
-        <form action={updateProfile} className="space-y-6">
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const profile = await getProfile();
+        if (profile) {
+          setFormData({
+            display_name: profile.display_name || '',
+            age_range: profile.age_range || '',
+            sex: profile.sex || '',
+            experience_level: profile.experience_level || '',
+            primary_goal: profile.primary_goal || '',
+            training_days_per_week: profile.training_days_per_week || 0,
+            preferred_style: profile.preferred_style || '',
+            available_equipment: profile.available_equipment || '',
+            injuries: profile.injuries || '',
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: name === 'training_days_per_week' ? parseInt(value) || 0 : value,
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formDataObj = new FormData(e.currentTarget);
+    await updateProfile(formDataObj);
+  };
+
+  if (isLoading) {
+    return (
+      <main className="min-h-screen bg-gray-900 py-6 px-4 sm:py-12 sm:px-6 lg:px-8">
+        <div className="max-w-2xl mx-auto">
+          <div className="text-center text-white">Loading...</div>
+        </div>
+      </main>
+    );
+  }
+
+  return (
+    <main className="min-h-screen bg-gray-900 py-6 px-4 sm:py-12 sm:px-6 lg:px-8">
+      <div className="max-w-2xl mx-auto">
+        <h1 className="text-2xl sm:text-3xl font-bold text-white mb-6 sm:mb-8">Onboarding</h1>
+
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           {/* Display Name */}
           <div>
             <label htmlFor="display_name" className="block text-sm font-medium text-white mb-2">
@@ -16,6 +97,8 @@ export default function Onboarding() {
               type="text"
               id="display_name"
               name="display_name"
+              value={formData.display_name}
+              onChange={handleChange}
               required
               className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -27,8 +110,10 @@ export default function Onboarding() {
               Age
             </label>
             <select
-              id="age"
-              name="age"
+              id="age_range"
+              name="age_range"
+              value={formData.age_range}
+              onChange={handleChange}
               required
               className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
@@ -50,6 +135,8 @@ export default function Onboarding() {
             <select
               id="sex"
               name="sex"
+              value={formData.sex}
+              onChange={handleChange}
               required
               className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
@@ -69,6 +156,8 @@ export default function Onboarding() {
             <select
               id="experience_level"
               name="experience_level"
+              value={formData.experience_level}
+              onChange={handleChange}
               required
               className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
@@ -88,6 +177,8 @@ export default function Onboarding() {
             <select
               id="primary_goal"
               name="primary_goal"
+              value={formData.primary_goal}
+              onChange={handleChange}
               required
               className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
@@ -109,6 +200,8 @@ export default function Onboarding() {
             <select
               id="training_days_per_week"
               name="training_days_per_week"
+              value={formData.training_days_per_week}
+              onChange={handleChange}
               required
               className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
@@ -131,6 +224,8 @@ export default function Onboarding() {
             <select
               id="preferred_style"
               name="preferred_style"
+              value={formData.preferred_style}
+              onChange={handleChange}
               required
               className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
@@ -153,6 +248,8 @@ export default function Onboarding() {
             <select
               id="available_equipment"
               name="available_equipment"
+              value={formData.available_equipment}
+              onChange={handleChange}
               required
               className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
@@ -174,6 +271,8 @@ export default function Onboarding() {
             <textarea
               id="injuries"
               name="injuries"
+              value={formData.injuries || ''}
+              onChange={handleChange}
               rows={4}
               placeholder="Please describe any injuries or physical limitations..."
               className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"

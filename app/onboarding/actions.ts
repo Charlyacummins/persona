@@ -3,6 +3,32 @@
 import { createSupabaseServerClient } from "@/app/lib/supabase/server";
 import { redirect } from "next/navigation";
 
+export async function getProfile() {
+  const supabase = await createSupabaseServerClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
+
+  if (error) {
+    console.error("Error fetching profile:", error);
+    return null;
+  }
+
+  return data;
+}
+
 export async function updateProfile(formData: FormData) {
   const supabase = await createSupabaseServerClient();
 

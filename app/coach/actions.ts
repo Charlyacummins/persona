@@ -76,3 +76,37 @@ ${JSON.stringify(profile, null, 2)}`,
 
   return updated ?? [];
 }
+
+export async function savePlan(
+  title: string,
+  sourcePrompt: string,
+  planContent: string
+) {
+  const supabase = await createSupabaseServerClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  // Try to parse the plan as JSON, otherwise save as text in a JSON wrapper
+  let planJson;
+  try {
+    planJson = JSON.parse(planContent);
+  } catch {
+    planJson = { content: planContent, format: "text" };
+  }
+
+  const { data, error } = await supabase
+    .from("plans")
+    .insert({
+      user_id: user.id,
+      title,
+      source_prompt: sourcePrompt,
+      plan_json: planJson,
+      is_active: true,
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
